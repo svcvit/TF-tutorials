@@ -6,16 +6,15 @@ def add_layer(inputs,in_size,out_size,n_layer,activation_function=None):
 
     layer_name = 'layer%s' % n_layer
 
-    with tf.name_scope('layer'):
+    with tf.name_scope(layer_name):
 
-        with tf.name_scope('wights'):
-            Weights = tf.Variable(tf.random_normal([in_size,out_size]),name='W')
+        # with tf.name_scope('weights'):
+        Weights = tf.Variable(tf.random_normal([in_size,out_size]),name='W')
+        tf.summary.histogram('/weights',Weights)
+        # with tf.name_scope('biases'):
+        biases = tf.Variable(tf.zeros([1,out_size])+0.1,name='b')
 
-            tf.summary.histogram(layer_name+'/weights',Weights)
-        with tf.name_scope('biases'):
-            biases = tf.Variable(tf.zeros([1,out_size])+0.1,name='b')
-
-            tf.summary.histogram(layer_name + '/biases', biases)
+        tf.summary.histogram('biases',biases)
         with tf.name_scope('Wx_plus_b'):
             Wx_plus_b = tf.add(tf.matmul(inputs,Weights),biases)
 
@@ -24,7 +23,7 @@ def add_layer(inputs,in_size,out_size,n_layer,activation_function=None):
         else:
             outputs=activation_function(Wx_plus_b)
 
-        tf.summary.histogram(layer_name + '/outputs', outputs)
+        tf.summary.histogram('/outputs', outputs)
         return outputs
 
 x_data = np.linspace(-1,1,300)[:, np.newaxis] #300行
@@ -46,7 +45,7 @@ predition = add_layer(l1,10,1,n_layer=2,activation_function=None)
 with tf.name_scope('loss'):
     loss = tf.reduce_mean(tf.reduce_sum(tf.square(ys-predition),
                                     reduction_indices=[1])) #平方，对差值求和，求平均值
-    #可视化的内容里增加event
+    #可视化的内容里增加scalars,以前叫events
     tf.summary.scalar('loss',loss)
 with tf.name_scope('train'):
     train_step = tf.train.GradientDescentOptimizer(0.1).minimize(loss) #学习效率0.1，目的是减小误差
